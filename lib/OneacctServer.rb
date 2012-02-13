@@ -12,11 +12,19 @@
 ## limitations under the License.
 ###########################################################################
 
-$: << File.dirname(__FILE__)
+$: << File.dirname(__FILE__) + '/common'
 
-require 'oneacct-server'
+# Common cloud libs
+require 'CloudServer'
 
-disable :run
-set :root, File.dirname(__FILE__)
+class OneacctServer < CloudServer
+  def initialize(config)
+    super(config)
 
-run Sinatra::Application
+    if config[:ssl_server]
+      @base_url=config[:ssl_server]
+    else
+      @base_url="http://#{config[:server]}:#{config[:port]}"
+    end
+  end
+end
