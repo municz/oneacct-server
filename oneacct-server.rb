@@ -19,43 +19,55 @@ require 'bundler/setup'
 
 require 'sinatra'
 require 'yaml'
-
-require 'OneacctServer'
+require 'sequel'
+require 'sqlite3'
 
 CONFIGURATION_DIR = File.dirname(__FILE__) + '/etc'
 CONFIGURATION_FILE = CONFIGURATION_DIR + '/oneacct-server.conf'
 
 # load configuration
 begin
-  conf = YAML.load_file(CONFIGURATION_FILE)
+  CONF = YAML.load_file(CONFIGURATION_FILE)
 rescue Exception => e
   puts "Error parsing config file #{CONFIGURATION_FILE}: #{e.message}"
   exit 1
 end
 
-CloudServer.print_configuration(conf)
+# prepare access to the DB
+begin
+  DB = Sequel.connect(CONF[:DB])
+rescue Exception => e
+  puts "Error opening DB file: #{CONF[:DB]}; #{e.message}"
+  exit 1
+end
+
+require 'OneacctServer'
+
+CloudServer.print_configuration(CONF)
 
 #
 use Rack::Session::Pool, :key => 'oneacct'
-set :config, conf
+set :config, CONF
 set :host, settings.config[:server]
 set :port, settings.config[:port]
 
 # helpers
 before do
-  @oneacct_server = OneacctServer.new(settings.config)
-  begin
-    result = @oneacct_server.authenticate(request.env)
-  rescue Exception => e
-    error 500, e.message
-  end
 
-  if result
-    error 401, result
-  end
+  @oneacct_server = OneacctServer.new(settings.config)
+
+  #begin
+  #  result = @oneacct_server.authenticate(request.env)
+  #rescue Exception => e
+  #  error 500, e.message
+  #end
+  #
+  #if result
+  #  error 401, result
+  #end
 end
 
 # actions
 get '/' do
-  "Hello, I'm OpenNebula's new accounting server."
+  @oneacct_server.get_data({})
 end

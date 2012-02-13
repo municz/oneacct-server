@@ -16,6 +16,7 @@ $: << File.dirname(__FILE__) + '/common'
 
 # Common cloud libs
 require 'CloudServer'
+require 'acct/acct_helper'
 
 class OneacctServer < CloudServer
   def initialize(config)
@@ -26,5 +27,19 @@ class OneacctServer < CloudServer
     else
       @base_url="http://#{config[:server]}:#{config[:port]}"
     end
+  end
+
+  def get_data(options)
+    acct_helper=AcctHelper.new
+    filters=Hash.new
+
+# TODO: forward options here
+    filters[:start]=options[:start].to_i if options[:start]
+    filters[:end]=options[:end].to_i if options[:end]
+    filters[:user]=options[:user].to_i if options[:user]
+
+# TODO: select the right format
+    #acct_helper.gen_json(filters)
+    acct_helper.gen_xml(filters)
   end
 end
