@@ -35,6 +35,7 @@ end
 
 # prepare access to the DB
 begin
+  raise Exception.new "File does not exist!" unless File.exists? CONF[:DB].sub /^sqlite:\/\//, ''
   DB = Sequel.connect(CONF[:DB])
 rescue Exception => e
   puts "Error opening DB file: #{CONF[:DB]}; #{e.message}"
@@ -56,18 +57,32 @@ before do
 
   @oneacct_server = OneacctServer.new(settings.config)
 
-  #begin
-  #  result = @oneacct_server.authenticate(request.env)
-  #rescue Exception => e
-  #  error 500, e.message
-  #end
-  #
-  #if result
-  #  error 401, result
-  #end
+  begin
+    result = @oneacct_server.authenticate(request.env)
+  rescue Exception => e
+    error 500, e.message
+  end
+
+  if result
+    error 401, result
+  end
 end
 
 # actions
 get '/' do
-  @oneacct_server.get_data({})
+  options = {}
+  @oneacct_server.get_data(options)
+end
+
+post '/' do
+  options =
+  @oneacct_server.get_data(options)
+end
+
+not_found do
+  'This is nowhere to be found.'
+end
+
+error do
+  'Sorry there was an error - ' + env['sinatra.error'].name
 end
