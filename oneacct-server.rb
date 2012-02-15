@@ -68,21 +68,32 @@ before do
   end
 end
 
-# actions
-get '/' do
-  options = {}
-  @oneacct_server.get_data(options)
+get '/:format?' do
+
+  if params[:format]
+    @oneacct_server.get_data Hash.new, params[:format].to_sym
+  else
+    @oneacct_server.get_data Hash.new
+  end
 end
 
-post '/' do
-  options =
-  @oneacct_server.get_data(options)
+post '/:format?' do
+  options = Hash.new
+  options[:start] = params[:from_time]
+  options[:end] = params[:to_time]
+  options[:user] = params[:for_user]
+
+  if params[:format]
+    @oneacct_server.get_data options, params[:format].to_sym
+  else
+    @oneacct_server.get_data options
+  end
 end
 
 not_found do
-  'This is nowhere to be found.'
+  'The data you have requested is nowhere to be found.'
 end
 
 error do
-  'Sorry there was an error - ' + env['sinatra.error'].name
+  'Ooops. ' + env['sinatra.error'].message
 end

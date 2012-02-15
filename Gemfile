@@ -11,4 +11,5 @@ gem "json"
 group :test do
   gem "test-unit"
   gem "rack-test"
+  gem "nokogiri"
 end

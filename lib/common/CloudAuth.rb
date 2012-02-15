@@ -18,7 +18,8 @@ class CloudAuth
     AUTH_MODULES = {
         "basic" => 'BasicCloudAuth',
         "ec2"   => 'EC2CloudAuth',
-        "x509"  => 'X509CloudAuth'
+        "x509"  => 'X509CloudAuth',
+        "dummy" => 'DummyCloudAuth'
     }
 
     attr_reader :client, :token

@@ -29,17 +29,22 @@ class OneacctServer < CloudServer
     end
   end
 
-  def get_data(options)
+  def get_data(options, format = :json)
     acct_helper=AcctHelper.new
     filters=Hash.new
 
-# TODO: forward options here
     filters[:start]=options[:start].to_i if options[:start]
     filters[:end]=options[:end].to_i if options[:end]
     filters[:user]=options[:user].to_i if options[:user]
 
-# TODO: select the right format
-    #acct_helper.gen_json(filters)
-    acct_helper.gen_xml(filters)
+    case format
+      when :json
+        acct_helper.gen_json filters
+      when :xml
+        acct_helper.gen_xml filters
+      else
+        [400, "Unknown format!"]
+    end
+
   end
 end
