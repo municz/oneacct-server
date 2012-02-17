@@ -19,7 +19,7 @@ module DummyCloudAuth
     if auth.provided? && auth.basic?
       username, password = auth.credentials
 
-      if password == 'onepass' && username == 'oneadmin'
+      if password == Digest::SHA1.hexdigest('onepass') && username == 'oneadmin'
         return nil
       else
         return "Authentication failure"
