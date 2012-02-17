@@ -14,29 +14,38 @@
 
 $: << File.dirname(__FILE__) + '/common'
 
-# Common cloud libs
+# common cloud libs
 require 'CloudServer'
 require 'acct/acct_helper'
 
 class OneacctServer < CloudServer
+
   def initialize(config)
+
     super(config)
 
+    # fix base_url if using SSL proxy
     if config[:ssl_server]
       @base_url=config[:ssl_server]
     else
       @base_url="http://#{config[:server]}:#{config[:port]}"
     end
+
   end
 
   def get_data(options, format = :json)
-    acct_helper=AcctHelper.new
-    filters=Hash.new
 
+    # instantiate helper with access to OpenNebula's accounting subsystem
+    # this is a modified version of the helper from the Accounting Toolset
+    acct_helper=AcctHelper.new
+
+    # convert Strings to integers
+    filters=Hash.new
     filters[:start]=options[:start].to_i if options[:start]
     filters[:end]=options[:end].to_i if options[:end]
     filters[:user]=options[:user].to_i if options[:user]
 
+    # call the right output formatter
     case format
       when :json
         acct_helper.gen_json filters
@@ -47,4 +56,5 @@ class OneacctServer < CloudServer
     end
 
   end
+
 end

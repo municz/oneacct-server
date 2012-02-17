@@ -22,10 +22,11 @@ require 'yaml'
 require 'sequel'
 require 'sqlite3'
 
+# configuration from a local etc file
 CONFIGURATION_DIR = File.dirname(__FILE__) + '/etc'
 CONFIGURATION_FILE = CONFIGURATION_DIR + '/oneacct-server.conf'
 
-# load configuration
+# load and parse configuration
 begin
   CONF = YAML.load_file(CONFIGURATION_FILE)
 rescue Exception => e
@@ -44,30 +45,37 @@ end
 
 require 'OneacctServer'
 
-CloudServer.print_configuration(CONF)
-
-#
+# set env variables for Rack and Sinatra
 use Rack::Session::Pool, :key => 'oneacct'
 set :config, CONF
 set :host, settings.config[:server]
 set :port, settings.config[:port]
 
-# helpers
+# TODO: print config only for debugging sessions
+CloudServer.print_configuration(CONF)
+
+# instantiate OneacctServer with configuration read from oneacct-server.conf
+# and authenticate the request (basic auth, EC2, X509 or Dummy)
 before do
 
   @oneacct_server = OneacctServer.new(settings.config)
 
+  # try to authenticate
   begin
     result = @oneacct_server.authenticate(request.env)
   rescue Exception => e
+    # unexpected server error
     error 500, e.message
   end
 
+  # user is not authorized to access the server
   if result
     error 401, result
   end
+
 end
 
+# get data without filters
 get '/:format?' do
 
   if params[:format]
@@ -75,9 +83,13 @@ get '/:format?' do
   else
     @oneacct_server.get_data Hash.new
   end
+
 end
 
+# get data with filters
 post '/:format?' do
+
+  # TODO: add some restrictions and type checks
   options = Hash.new
   options[:start] = params[:from_time]
   options[:end] = params[:to_time]
@@ -88,12 +100,15 @@ post '/:format?' do
   else
     @oneacct_server.get_data options
   end
+
 end
 
+# catch Not Found exceptions and respond with a message
 not_found do
   'The data you have requested is nowhere to be found.'
 end
 
+# catch Internal Server Error exceptions and respond with a message
 error do
   'Ooops. ' + env['sinatra.error'].message
 end

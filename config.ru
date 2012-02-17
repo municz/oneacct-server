@@ -16,7 +16,9 @@ $: << File.dirname(__FILE__)
 
 require 'oneacct-server'
 
+# set some basic environment variables
 disable :run
 set :root, File.dirname(__FILE__)
 
+# start the server
 run Sinatra::Application

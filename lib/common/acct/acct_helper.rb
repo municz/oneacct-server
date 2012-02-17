@@ -1,3 +1,5 @@
+## NOTE: this file has been modified for the purposes of seamless integration
+##       with oneacct-server
 # --------------------------------------------------------------------------
 # Copyright 2010-2011, C12G Labs S.L.
 #
