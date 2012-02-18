@@ -19,6 +19,7 @@ require 'rack/test'
 require 'fileutils'
 require 'json'
 require 'nokogiri'
+require 'digest/sha1'
 
 # TODO: find a better way to provide test data
 FileUtils.copy(File.dirname(__FILE__) + '/mockdata/oneacct.db', '/tmp/oneacct.db') unless File.exists? '/tmp/oneacct.db'
@@ -37,14 +38,14 @@ class OneacctServerTest < Test::Unit::TestCase
 
   def test_not_found
     browser = Rack::Test::Session.new(Rack::MockSession.new(Sinatra::Application))
-    browser.basic_authorize "oneadmin", "onepass"
+    browser.basic_authorize "oneadmin", Digest::SHA1.hexdigest('onepass')
     browser.get '/not/there'
     assert_equal 'The data you have requested is nowhere to be found.', browser.last_response.body
   end
 
   def test_wrong_format
     browser = Rack::Test::Session.new(Rack::MockSession.new(Sinatra::Application))
-    browser.basic_authorize "oneadmin", "onepass"
+    browser.basic_authorize "oneadmin", Digest::SHA1.hexdigest('onepass')
     browser.get '/html'
     assert_equal 'Unknown format!', browser.last_response.body
   end
@@ -57,14 +58,14 @@ class OneacctServerTest < Test::Unit::TestCase
 
   def test_wrong_auth_error
     browser = Rack::Test::Session.new(Rack::MockSession.new(Sinatra::Application))
-    browser.basic_authorize "oneadmin", "notmypass"
+    browser.basic_authorize "oneadmin", Digest::SHA1.hexdigest('notmypass')
     browser.get '/'
     assert_equal 401, browser.last_response.status
   end
 
   def test_get_some_json
     browser = Rack::Test::Session.new(Rack::MockSession.new(Sinatra::Application))
-    browser.basic_authorize "oneadmin", "onepass"
+    browser.basic_authorize "oneadmin", Digest::SHA1.hexdigest('onepass')
     browser.get '/json'
 
     assert_nothing_raised {JSON.parse browser.last_response.body}
@@ -72,7 +73,7 @@ class OneacctServerTest < Test::Unit::TestCase
 
   def test_get_some_xml
     browser = Rack::Test::Session.new(Rack::MockSession.new(Sinatra::Application))
-    browser.basic_authorize "oneadmin", "onepass"
+    browser.basic_authorize "oneadmin", Digest::SHA1.hexdigest('onepass')
     browser.get '/xml'
 
     assert_nothing_raised {Nokogiri::XML browser.last_response.body}
