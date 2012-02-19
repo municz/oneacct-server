@@ -14,6 +14,9 @@
 
 $: << File.dirname(__FILE__) + '/..'
 
+require 'rubygems'
+require 'bundler/setup'
+
 require 'test/unit'
 require 'rack/test'
 require 'fileutils'
