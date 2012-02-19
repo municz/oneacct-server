@@ -51,8 +51,7 @@ set :config, CONF
 set :host, settings.config[:server]
 set :port, settings.config[:port]
 
-# TODO: print config only for debugging sessions
-CloudServer.print_configuration(CONF)
+CloudServer.print_configuration(CONF) if CONF[:debug]
 
 # instantiate OneacctServer with configuration read from oneacct-server.conf
 # and authenticate the request (basic auth, EC2, X509 or Dummy)
